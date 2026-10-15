@@ -15,7 +15,7 @@ separate; this CMake build does not compile or modify it.
 ## Two Learning Tracks
 
 - **C++ MiniNode:** The root C++ runtime embeds V8 and runs its root-level `app.js` by default. Pass another JavaScript path to run a different script.
-- **Rust runtime experiments:** The separate Rust project under `src/` is a future, independent track for exploring Deno- and Bun-inspired runtime ideas; it is not part of the C++ executable or a completed clone.
+- **Rust runtime experiments:** A separate V8 host is taking shape under `src/`. It is an independent track for exploring Deno- and Bun-inspired runtime ideas, not a completed clone.
 
 The two tracks can eventually run comparable JavaScript workloads, while
 keeping their runtimes and implementations separate.
@@ -143,6 +143,22 @@ cmake -S . -B build \
 cmake --build build --target mininode --parallel
 ./build/mininode app.js
 ```
+
+## Rust Runtime Experiment
+
+The Rust executable uses the `v8` crate directly, independently of the C++
+MiniNode. The current slice runs a JavaScript file and exposes `console.log`,
+`require("fs")` with synchronous file operations, `require("buffer")` with a
+small V8-managed `Uint8Array` Buffer, and a small `setTimeout`/`clearTimeout`
+event loop.
+
+```sh
+cargo run -- rust-app.js
+```
+
+Pass another script path after `--` to run a different file. The Rust runtime
+is being built incrementally; its current APIs are not yet equivalent to the
+C++ runtime.
 
 If no script path is supplied, MiniNode looks for `app.js` in the current
 directory. To run another script:

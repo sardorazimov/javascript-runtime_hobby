@@ -18,3 +18,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 }
+
+
+/*. This code only compiles .cpp and .h files and has nothing
+ to do with Rust; Rust is different—it will have a separate runtime for learning purposes.
+ So, for now, there are two different languages ​​involved. */
