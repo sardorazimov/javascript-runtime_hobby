@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Implements a small Buffer API backed by V8 Uint8Array objects.
+ */
 #include "buffer.h"
 
 #include <algorithm>

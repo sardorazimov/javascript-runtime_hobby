@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Parses the script path, starts MiniNode, and runs the entry script.
+ */
 #include <filesystem>
 #include <exception>
 #include <iostream>

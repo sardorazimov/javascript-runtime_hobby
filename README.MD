@@ -12,12 +12,70 @@ ideas and workloads with Rust and other languages.
 The C++ project is in the repository root. The Rust project under `src/` is
 separate; this CMake build does not compile or modify it.
 
+## Two Learning Tracks
+
+- **C++ MiniNode:** The root C++ runtime embeds V8 and runs its root-level `app.js` by default. Pass another JavaScript path to run a different script.
+- **Rust runtime experiments:** The separate Rust project under `src/` is a future, independent track for exploring Deno- and Bun-inspired runtime ideas; it is not part of the C++ executable or a completed clone.
+
+The two tracks can eventually run comparable JavaScript workloads, while
+keeping their runtimes and implementations separate.
+
 ## What It Teaches
 
 JavaScript engines execute the language, but a runtime provides the surrounding
 environment: loading files, exposing native APIs, managing callbacks, and
 deciding when the process can exit. MiniNode embeds Google's V8 engine and
 implements a small set of those runtime responsibilities in C++.
+
+### Runtime Flow
+
+This diagram follows the C++ MiniNode path. The Rust runtime experiments are
+separate and are not shown here.
+
+```mermaid
+flowchart TD
+classDef jsLayer fill:#2d3748,stroke:#63b3ed,stroke-width:2px,color:#fff;
+classDef v8Layer fill:#1a365d,stroke:#90cdf4,stroke-width:2px,color:#fff;
+classDef bridgeLayer fill:#744210,stroke:#f6ad55,stroke-width:2px,color:#fff;
+classDef cppLayer fill:#22543d,stroke:#68d391,stroke-width:2px,color:#fff;
+
+subgraph JS["1. JavaScript Layer"]
+A["app.js<br/>Entry script, require(), console, Buffer, timers"]:::jsLayer
+end
+
+subgraph V8["2. V8 Engine"]
+B["v8::Isolate and v8::Context<br/>Compile and execute JavaScript"]:::v8Layer
+C["V8 Garbage Collector<br/>Manages JavaScript objects and ArrayBuffers"]:::v8Layer
+end
+
+subgraph Bridge["3. Native Bindings"]
+D["Function callbacks<br/>console, fs, and net APIs"]:::bridgeLayer
+E["Buffer module<br/>V8 Uint8Array-backed byte data"]:::bridgeLayer
+end
+
+subgraph Native["4. C++ Runtime"]
+F["main.cpp and Runtime<br/>Startup, V8 lifecycle, and shutdown"]:::cppLayer
+G["ModuleLoader<br/>Local CommonJS-style loading and cache"]:::cppLayer
+H["EventLoop<br/>Timers and JS-thread callbacks"]:::cppLayer
+I["AsyncTaskPool<br/>Background filesystem work"]:::cppLayer
+end
+
+F -->|Creates and configures| B
+F -->|Installs| D
+F -->|Installs| E
+F -->|Creates| G
+F -->|Creates| H
+G -->|Reads and wraps| A
+A -->|Runs inside| B
+B <-->|Native calls and results| D
+E -->|Creates managed typed arrays| B
+B <-->|Heap allocation and collection| C
+A -->|fs.readFile| D
+D -->|Submits file work| I
+I -->|Posts completion| H
+H -->|Invokes callback on JS thread| B
+A -->|setTimeout and clearTimeout| H
+```
 
 At a high level, startup works like this:
 

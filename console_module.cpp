@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Exposes console logging methods that write to stdout and stderr.
+ */
 #include "console_module.h"
 
 #include <iostream>
@@ -46,5 +50,3 @@ void Install(v8::Isolate*, v8::Local<v8::Context> context) {
 }
 
 }
-/* console_module.cpp: JavaScript'ten çağrilan console.log(), 
-   console.error() gibi komutları yakalayıp C++ standard çıktısına (std::cout) yazar. */

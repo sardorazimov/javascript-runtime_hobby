@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Logs JavaScript Promise rejections that have no rejection handler.
+ */
 #pragma once
 
 #include <iostream>

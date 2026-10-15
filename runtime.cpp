@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Owns V8 startup, native module setup, script execution, and shutdown.
+ */
 #include "runtime.h"
 
 #include <iostream>
@@ -60,6 +64,7 @@ Runtime::Runtime(std::filesystem::path working_directory)
 }
 
 Runtime::~Runtime() {
+   async_tasks_.Shutdown();
    if (isolate_ != nullptr) {
       {
          v8::Isolate::Scope isolate_scope(isolate_);
@@ -126,5 +131,3 @@ FsModule::AsyncContext& Runtime::fs_async_context() noexcept {
 }
 
 }
-/* runtime.h: V8 Isolate, Context ve global state yönetimini 
-   tek bir çatı altında toplayan ana sınıfın tanımıdır. */

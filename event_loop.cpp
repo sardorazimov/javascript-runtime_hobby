@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Implements timers and dispatches queued callbacks on the JS thread.
+ */
 #include "event_loop.h"
 
 #include <algorithm>

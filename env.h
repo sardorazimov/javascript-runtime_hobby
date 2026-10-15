@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Stores paths and other state shared by a MiniNode runtime instance.
+ */
 #pragma once
 
 #include <filesystem>
@@ -10,5 +14,3 @@ struct RuntimeEnvironment {
 };
 
 }
-/* env.h: Global değişkenleri, thread context'lerini ve 
-   runtime genelinde paylaşılması gereken state'leri tutar. */

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Implements synchronous file operations and callback-based file reads.
+ */
 #include "fs_module.h"
 
 #include <filesystem>
@@ -174,5 +178,3 @@ void Install(v8::Isolate*, v8::Local<v8::Context> context,
 }
 
 }
-/* fs_module.cpp: fs.readFile veya fs.writeFileSync gibi temel 
-   dosya okuma/yazma işlemlerinin C++ (POSIX / Win32) karşılıklarını işletim sistemine iletir. */

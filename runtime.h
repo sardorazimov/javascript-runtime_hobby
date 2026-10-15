@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Declares the owner of V8 state and the MiniNode runtime lifecycle.
+ */
 #pragma once
 
 #include <filesystem>
@@ -42,5 +46,3 @@ private:
 };
 
 }
-/* runtime.h: V8 Isolate, Context ve global state yönetimini 
-   tek bir çatı altında toplayan ana sınıfın tanımıdır. */

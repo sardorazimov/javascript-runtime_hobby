@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Provides small conversion helpers between C++ strings and V8 values.
+ */
 #pragma once
 
 #include <string>
@@ -23,5 +27,3 @@ inline std::string ToStdString(v8::Isolate* isolate,
 }
 
 }
-/* binding.h: C++ fonksiyonlarını ve sınıflarını JavaScript dünyasının 
-   tanıyacağı formata (V8 FunctionTemplate / Local) dönüştüren makroları barındırır. */

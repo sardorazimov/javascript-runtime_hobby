@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Resolves, wraps, executes, and caches CommonJS-style JS modules.
+ */
 #include "module_loader.h"
 
 #include <fstream>

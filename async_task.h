@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Declares the worker pool that runs blocking tasks off the JS thread.
+ */
 #pragma once
 
 #include <condition_variable>
@@ -18,6 +22,7 @@ public:
    AsyncTaskPool& operator=(const AsyncTaskPool&) = delete;
 
    void Submit(std::function<void()> task);
+   void Shutdown();
 
 private:
    void Worker();

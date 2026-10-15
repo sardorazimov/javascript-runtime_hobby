@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Declares filesystem bindings and state for asynchronous callbacks.
+ */
 #pragma once
 
 #include <v8.h>
@@ -23,5 +27,3 @@ v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context,
                                    AsyncContext* async_context);
 
 }
-/* fs_module.cpp: fs.readFile veya fs.writeFileSync gibi temel 
-   dosya okuma/yazma işlemlerinin C++ (POSIX / Win32) karşılıklarını işletim sistemine iletir. */

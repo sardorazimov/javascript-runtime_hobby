@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Declares installation and creation functions for the console object.
+ */
 #pragma once
 
 #include <v8.h>
@@ -8,5 +12,3 @@ void Install(v8::Isolate* isolate, v8::Local<v8::Context> context);
 v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context);
 
 }
-/* console_module.cpp: JavaScript'ten çağrilan console.log(), 
-   console.error() gibi komutları yakalayıp C++ standard çıktısına (std::cout) yazar. */

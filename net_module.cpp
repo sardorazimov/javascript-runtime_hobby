@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Implements a bounded synchronous TCP request for network experiments.
+ */
 #include "net_module.h"
 
 #include <algorithm>

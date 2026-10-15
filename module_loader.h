@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Declares local module resolution, execution, and caching behavior.
+ */
 #pragma once
 
 #include <filesystem>

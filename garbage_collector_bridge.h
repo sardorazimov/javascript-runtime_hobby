@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Reports native external-memory changes to V8's garbage collector.
+ */
 #pragma once
 
 #include <cstdint>

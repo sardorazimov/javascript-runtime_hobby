@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 Sardor Azimov. Hobby project for learning runtime internals.
+ * Purpose: Declares the timer and callback queues used by the runtime loop.
+ */
 #pragma once
 
 #include <atomic>
