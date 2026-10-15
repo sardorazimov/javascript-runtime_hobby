@@ -1,1 +1,8 @@
 /target
+/build
+CMakeCache.txt
+CMakeFiles/
+*.o
+*.obj
+mininode
+.DS_Store

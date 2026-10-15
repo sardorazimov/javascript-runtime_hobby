@@ -1,3 +1,0 @@
-/Users/sardorazimov/Desktop/projects/build/CMakeFiles/mininode.dir
-/Users/sardorazimov/Desktop/projects/build/CMakeFiles/edit_cache.dir
-/Users/sardorazimov/Desktop/projects/build/CMakeFiles/rebuild_cache.dir
