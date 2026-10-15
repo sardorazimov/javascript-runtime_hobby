@@ -62,7 +62,7 @@ void ReadFile(const v8::FunctionCallbackInfo<v8::Value>& info) {
    }
 
    auto* async_context = static_cast<AsyncContext*>(
-      info.Data().As<v8::External>()->Value());
+      info.Data().As<v8::External>()->Value(v8::kExternalPointerTypeTagDefault));
    const auto file_path = ToStdString(isolate, info[0]);
    auto callback = std::make_shared<v8::Global<v8::Function>>(
       isolate, info[1].As<v8::Function>());
@@ -102,9 +102,12 @@ void ReadFile(const v8::FunctionCallbackInfo<v8::Value>& info) {
                      arguments[1] = v8::Undefined(current_isolate);
                   }
                   v8::TryCatch try_catch(current_isolate);
-                  callback->Get(current_isolate)
-                     ->Call(context, v8::Undefined(current_isolate), 2,
-                           arguments);
+                     v8::Local<v8::Value> callback_result;
+                     const bool callback_succeeded = callback->Get(current_isolate)
+                                     ->Call(context,
+                                        v8::Undefined(current_isolate),
+                                        2, arguments)
+                                     .ToLocal(&callback_result);
                   current_isolate->PerformMicrotaskCheckpoint();
                   if (try_catch.HasCaught()) {
                      v8::String::Utf8Value message(
@@ -114,6 +117,7 @@ void ReadFile(const v8::FunctionCallbackInfo<v8::Value>& info) {
                                                : *message)
                              << '\n';
                   }
+                        static_cast<void>(callback_succeeded);
                   callback->Reset();
                   async_context->event_loop->Unref();
                });
@@ -148,13 +152,15 @@ void AddMethod(v8::Isolate* isolate, v8::Local<v8::Context> context,
 
 v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context,
                                     AsyncContext* async_context) {
-   auto* isolate = context->GetIsolate();
+   auto* isolate = v8::Isolate::GetCurrent();
    auto fs = v8::Object::New(isolate);
    AddMethod(isolate, context, fs, "readFileSync", ReadFileSync);
    AddMethod(isolate, context, fs, "writeFileSync", WriteFileSync);
    AddMethod(isolate, context, fs, "existsSync", ExistsSync);
    auto read_file = v8::Function::New(
-                   context, ReadFile, v8::External::New(isolate, async_context))
+                   context, ReadFile,
+                   v8::External::New(isolate, async_context,
+                                     v8::kExternalPointerTypeTagDefault))
                    .ToLocalChecked();
    fs->Set(context, ToV8String(isolate, "readFile"), read_file).Check();
    return fs;
@@ -163,7 +169,7 @@ v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context,
 void Install(v8::Isolate*, v8::Local<v8::Context> context,
           AsyncContext* async_context) {
    auto fs = CreateObject(context, async_context);
-   context->Global()->Set(context, ToV8String(context->GetIsolate(), "fs"), fs)
+   context->Global()->Set(context, ToV8String(v8::Isolate::GetCurrent(), "fs"), fs)
       .Check();
 }
 

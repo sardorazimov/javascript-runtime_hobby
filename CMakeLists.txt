@@ -9,6 +9,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(MININODE_V8_ROOT "" CACHE PATH "Path to a V8 SDK root")
 set(MININODE_V8_LIBRARIES "" CACHE STRING "Semicolon-separated V8 libraries to link")
+option(MININODE_V8_COMPRESS_POINTERS
+	"Enable pointer compression to match standard Homebrew V8 builds" ON)
 
 set(MININODE_V8_HINTS "${MININODE_V8_ROOT}")
 if(APPLE)
@@ -74,6 +76,9 @@ if(MININODE_V8_INCLUDE_DIR AND MININODE_V8_LIBRARIES)
 	add_executable(mininode ${MININODE_SOURCES})
 	target_include_directories(mininode PRIVATE "${MININODE_V8_INCLUDE_DIR}")
 	target_link_libraries(mininode PRIVATE ${MININODE_V8_LIBRARIES})
+	if(MININODE_V8_COMPRESS_POINTERS)
+		target_compile_definitions(mininode PRIVATE V8_COMPRESS_POINTERS)
+	endif()
 else()
 	add_custom_target(mininode SOURCES ${MININODE_SOURCES})
 	message(STATUS

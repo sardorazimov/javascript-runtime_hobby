@@ -121,7 +121,7 @@ void TcpRequestSync(const v8::FunctionCallbackInfo<v8::Value>& info) {
 }
 
 v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context) {
-   auto* isolate = context->GetIsolate();
+   auto* isolate = v8::Isolate::GetCurrent();
    auto net = v8::Object::New(isolate);
    net->Set(context, ToV8String(isolate, "tcpRequestSync"),
           v8::Function::New(context, TcpRequestSync).ToLocalChecked())
@@ -131,7 +131,7 @@ v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context) {
 
 void Install(v8::Isolate*, v8::Local<v8::Context> context) {
    auto net = CreateObject(context);
-   context->Global()->Set(context, ToV8String(context->GetIsolate(), "net"), net)
+   context->Global()->Set(context, ToV8String(v8::Isolate::GetCurrent(), "net"), net)
       .Check();
 }
 

@@ -6,7 +6,9 @@
 #include <libplatform/libplatform.h>
 #include <v8.h>
 
+#include "async_task.h"
 #include "env.h"
+#include "fs_module.h"
 
 namespace mininode {
 

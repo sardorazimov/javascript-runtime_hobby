@@ -1,231 +1,167 @@
-C++ Offline Quick Reference — macOS
+# MiniNode
 
-İnternet olmadan C++ geliştirmek için gerekli temel komutlar.
+**A small JavaScript runtime built in C++ for learning how Node.js works.**
 
-1. Compiler kontrolü
-clang++ --version
+V8 runs the JavaScript. MiniNode supplies a small host environment around it.
 
-Beklenen:
+MiniNode is a hobby project for exploring the boundary between a JavaScript
+engine and a runtime. The goal is not to reimplement all of Node.js. The goal
+is to understand the pieces by building a small version, then compare selected
+ideas and workloads with Rust and other languages.
 
-Apple clang version ...
-Target: arm64-apple-darwin...
+The C++ project is in the repository root. The Rust project under `src/` is
+separate; this CMake build does not compile or modify it.
 
-1. C++ dosyasını derleme
+## What It Teaches
 
-Örneğin:
+JavaScript engines execute the language, but a runtime provides the surrounding
+environment: loading files, exposing native APIs, managing callbacks, and
+deciding when the process can exit. MiniNode embeds Google's V8 engine and
+implements a small set of those runtime responsibilities in C++.
 
-main.cpp
+At a high level, startup works like this:
 
-Derle (yalnızca V8 gibi harici bağımlılığı olmayan tek dosyalı örnekler için):
+1. Initialize V8 and create an isolate and JavaScript context.
+2. Install native globals such as `console`, `Buffer`, and timers.
+3. Read the entry script and wrap local modules in a CommonJS-style function.
+4. Execute JavaScript through V8; native callbacks call back into C++.
+5. Process queued file callbacks, timers, and JavaScript microtasks.
+6. Release V8 handles, the isolate, and the platform during shutdown.
 
-clang++ main.cpp -o main
+## Current Features
 
-Bu komut MiniNode projesi için yeterli değildir. MiniNode'u aşağıdaki CMake
-komutlarıyla derleyin; V8 başlık ve kütüphanelerini otomatik ekler.
+- V8 embedding, context setup, script execution, and error reporting.
+- `console.log`, `console.info`, `console.warn`, and `console.error`.
+- `require()` for local `.js` files, with a simple module cache.
+- Built-in modules: `fs`, `buffer`, and `net`.
+- `fs.readFile`, `fs.readFileSync`, `fs.writeFileSync`, and `fs.existsSync`.
+- `Buffer.alloc`, `Buffer.from`, `Buffer.isBuffer`, and UTF-8 `toString()`.
+- `setTimeout` and `clearTimeout` in a small event loop.
+- A worker pool for file reads; callbacks are delivered on the runtime thread.
+- Promise microtask checkpoints and unhandled rejection reporting.
+- `net.tcpRequestSync(host, port, request)` for basic TCP experiments.
 
-1. Programı çalıştırma
-./main
+`app.js` is the runnable example. It exercises built-ins, writes and reads
+`mini-node-output.txt`, and schedules callbacks.
 
-2. Tek komutta Build + Run
-clang++ main.cpp -o main && ./main
+## Requirements
 
-Eğer compilation başarısız olursa ./main çalıştırılmaz.
+- macOS with Xcode Command Line Tools
+- CMake
+- Homebrew
+- V8 development headers and libraries
 
-1. C++ standardı belirtmek
-
-C++17:
-
-clang++ -std=c++17 main.cpp -o main
-
-C++20:
-
-clang++ -std=c++20 main.cpp -o main
-
-C++23:
-
-clang++ -std=c++23 main.cpp -o main
-
-1. Warning'leri açarak derleme
-clang++ -std=c++20 -Wall -Wextra -pedantic main.cpp -o main
-
-Build + Run:
-
-clang++ -std=c++20 -Wall -Wextra -pedantic main.cpp -o main && ./main
-
-1. Debug build
-clang++ -std=c++20 -Wall -Wextra -g main.cpp -o main
-
-2. Birden fazla .cpp dosyası
-
-Örneğin:
-
-main.cpp
-Player.cpp
-Game.cpp
-
-Derleme:
-
-clang++ -std=c++20 main.cpp Player.cpp Game.cpp -o game
-
-Çalıştırma:
-
-./game
-
-1. Tüm .cpp dosyalarını birlikte derleme
-clang++ -std=c++20 *.cpp -o app
-
-Çalıştırma:
-
-./app
-
- 1. VS Code'da terminal açma
-Terminal → New Terminal
-
-Kısayol:
-
-Control + `
-
- 1. Klasördeki dosyaları görme
-ls
-
-Bulunduğun klasörü görme:
-
-pwd
-
-Klasöre girme:
-
-cd klasor_adi
-
-Bir üst klasöre çıkma:
-
-cd ..
-
- 1. Temizleme
-
-Oluşturduğun executable'ı silmek:
-
-rm main
-
-Örneğin:
-
-rm game
-
- 1. Git — internet olmadan
-
-Değişiklikleri kontrol et:
-
-git status
-
-Dosyaları ekle:
-
-git add .
-
-Commit:
-
-git commit -m "update"
-
-git add ve git commit için internet gerekmez.
-
- 1. Git — internet gerektiren komutlar
-
-Push:
-
-git push
-
-Pull:
-
-git pull
-
-Clone:
-
-git clone <repository>
-
-git push, git pull ve git clone internet bağlantısı gerektirir.
-
- 1. Acil durum — en önemli komut
-
-Sadece şunu hatırla:
-
-clang++ -std=c++20 main.cpp -o main && ./main
-
-Bu komut:
-
-main.cpp dosyasını C++20 ile derler.
-
-main isimli executable oluşturur.
-
-Derleme başarılıysa programı çalıştırır.
-
- 1. Birden fazla dosyada acil durum
-clang++ -std=c++20 *.cpp -o app && ./app
-
- 2. Compiler nerede?
-which clang++
-
-Mac'teki Apple Clang bilgisi:
-
-clang++ --version
-
-Mevcut sistemde compiler:
-
-Apple clang version 21.0.0
-Target: arm64-apple-darwin25.6.0
-
-⚡ 30 Saniyelik Hatırlatma
-Tek dosya
-clang++ -std=c++20 main.cpp -o main && ./main
-
-Birden fazla dosya
-clang++ -std=c++20 *.cpp -o app && ./app
-
-Compiler kontrol
-clang++ --version
-
-## MiniNode Öğrenme Runtime'ı
-
-Kök dizindeki C++ projesi V8 JavaScript motorunu gömer. `src/` altındaki Rust
-projesi ayrıdır ve bu CMake hedefine dahil değildir.
-
-### Gereksinimler
-
-- macOS, Xcode Command Line Tools ve CMake
-- Homebrew ile V8 SDK: `brew install v8`
-
-### Derleme ve çalıştırma
-
-VS Code'da CMake kit olarak AppleClang'ı seçin, projeyi yapılandırıp derleyin.
-Terminalden kullanmak için:
+Install the dependencies with Homebrew:
 
 ```sh
-cmake -S . -B build -DMININODE_V8_ROOT="$(brew --prefix v8)"
-cmake --build build --target mininode
+brew install cmake v8
+```
+
+The C/C++ extension for VS Code is optional. It provides editor support, not
+the compiler or V8 libraries. CMake Tools is also optional when building from
+the terminal.
+
+## Build and Run
+
+Run these commands from the repository root:
+
+```sh
+cmake -S . -B build \
+-DCMAKE_BUILD_TYPE=Debug \
+-DMININODE_V8_ROOT="$(brew --prefix v8)"
+cmake --build build --target mininode --parallel
 ./build/mininode app.js
 ```
 
-Dosya verilmezse runtime varsayılan olarak `app.js` dosyasını çalıştırır.
+If no script path is supplied, MiniNode looks for `app.js` in the current
+directory. To run another script:
 
-### İlk sürümde bulunan API'ler
+```sh
+./build/mininode path/to/script.js
+```
 
-- `console.log`, `console.info`, `console.warn`, `console.error`
-- `require()` ile yerel `.js` dosyaları ve `fs`, `buffer`, `net` built-in'leri
-- `fs.readFile`, `fs.readFileSync`, `fs.writeFileSync`, `fs.existsSync`
-- `Buffer.alloc`, `Buffer.from`, `Buffer.isBuffer` ve UTF-8 `toString()`
-- `setTimeout`, `clearTimeout` ve Promise mikro-görev kontrol noktaları
-- `net.tcpRequestSync(host, port, request)` ile temel TCP deneyi
+For a release build, use a separate build directory:
 
-`app.js` bu API'leri birlikte dener ve `mini-node-output.txt` dosyasını
-oluşturur. TCP isteği senkrondur; TLS, HTTP sunucusu, npm paketleri, ES module
-sözdizimi ve Node'un tüm `Buffer` davranışları bu eğitim projesinin kapsamı
-dışındadır.
+```sh
+cmake -S . -B build-release \
+-DCMAKE_BUILD_TYPE=Release \
+-DMININODE_V8_ROOT="$(brew --prefix v8)"
+cmake --build build-release --target mininode --parallel
+```
 
-Git offline
-git add .
-git commit -m "update"
+If V8 is installed somewhere else, pass its SDK root through
+`MININODE_V8_ROOT`. If CMake Tools is used in VS Code, select the AppleClang
+kit before configuring the project.
 
-Git online
-git push
-git pull
+## Clean Builds
 
-İnternet yoksa: C++ yaz → clang++ ile build et → ./main ile çalıştır → git commit yap.
+Remove compiled objects while keeping the CMake configuration:
 
-İnternet gelince: git push yap.
+```sh
+cmake --build build --target clean
+```
+
+Rebuild the target from scratch while keeping the build directory:
+
+```sh
+cmake --build build --clean-first --target mininode --parallel
+```
+
+To discard the generated build directory and configure again:
+
+```sh
+cmake -E rm -rf build
+cmake -S . -B build \
+-DCMAKE_BUILD_TYPE=Debug \
+-DMININODE_V8_ROOT="$(brew --prefix v8)"
+cmake --build build --target mininode --parallel
+```
+
+Only generated build files are stored in `build/`; source files remain in the
+repository root.
+
+## Learning Roadmap
+
+Use the project as a sequence of small runtime experiments:
+
+1. Trace V8 initialization, isolate ownership, handle scopes, and shutdown.
+2. Follow a JavaScript call such as `console.log()` into its C++ callback.
+3. Inspect how `require()` resolves paths, wraps modules, and caches exports.
+4. Trace `fs.readFile()` from the worker pool back to the event loop.
+5. Explore how `Buffer` uses V8 typed arrays and backing stores.
+6. Extend timers and microtask handling, then test process-exit behavior.
+7. Add tests before expanding compatibility or adding more native modules.
+
+Each experiment should stay small enough that the JavaScript call, native
+implementation, and observable result can all be followed together.
+
+## Limits
+
+This is an experimental learning runtime, not a Node.js replacement. The
+current implementation does not provide full Node compatibility, npm package
+resolution, ES modules, TLS, or an HTTP server. `net.tcpRequestSync` is
+synchronous and intended only for simple experiments. The `Buffer` API is a
+small subset of Node's API. Review the source before running scripts you do not
+trust: native filesystem and network APIs are not sandboxed.
+
+## Benchmarks and Language Experiments
+
+Benchmark results are not published yet. The plan is to compare carefully
+chosen runtime experiments with equivalent implementations in C++, Rust, and
+other languages as those experiments are added. No performance claim should be
+inferred from the runtime's current feature list.
+
+For useful comparisons, record the machine and OS, compiler and flags, V8
+version, build type, exact command, workload, warm-up policy, and number of
+repetitions. Report distributions or medians rather than a single best run.
+Keep startup, JavaScript execution, filesystem I/O, and network latency as
+separate workloads so they are not accidentally compared as if they measured
+the same thing. Benchmark results and reproducible commands will be shared
+alongside the experiments.
+
+## Project Status
+
+This project is developed as a hobby and learning exercise. APIs and internals
+may change while the runtime is being explored. Build and run the examples
+locally before relying on a feature; this project makes no production-readiness
+or performance guarantees.

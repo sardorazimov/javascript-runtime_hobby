@@ -61,13 +61,16 @@ Runtime::Runtime(std::filesystem::path working_directory)
 
 Runtime::~Runtime() {
    if (isolate_ != nullptr) {
-      v8::Isolate::Scope isolate_scope(isolate_);
-      v8::HandleScope handle_scope(isolate_);
-      event_loop_.reset();
-      module_loader_.reset();
-      fs_async_context_.context.Reset();
-      context_.Reset();
+      {
+         v8::Isolate::Scope isolate_scope(isolate_);
+         v8::HandleScope handle_scope(isolate_);
+         event_loop_.reset();
+         module_loader_.reset();
+         fs_async_context_.context.Reset();
+         context_.Reset();
+      }
       isolate_->Dispose();
+      isolate_ = nullptr;
    }
    v8::V8::Dispose();
    v8::V8::DisposePlatform();

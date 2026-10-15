@@ -13,7 +13,7 @@ inline void Install(v8::Isolate* isolate) {
       if (message.GetEvent() != v8::kPromiseRejectWithNoHandler) {
          return;
       }
-      auto* current_isolate = message.GetPromise()->GetIsolate();
+      auto* current_isolate = v8::Isolate::GetCurrent();
       v8::String::Utf8Value reason(current_isolate, message.GetValue());
       std::cerr << "MiniNode unhandled promise rejection: "
               << (*reason == nullptr ? "unknown rejection" : *reason) << '\n';

@@ -29,7 +29,7 @@ void AddMethod(v8::Isolate* isolate, v8::Local<v8::Context> context,
 }
 
 v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context) {
-   auto* isolate = context->GetIsolate();
+   auto* isolate = v8::Isolate::GetCurrent();
    auto console = v8::Object::New(isolate);
    AddMethod(isolate, context, console, "log", 0);
    AddMethod(isolate, context, console, "info", 0);
@@ -40,7 +40,7 @@ v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context) {
 
 void Install(v8::Isolate*, v8::Local<v8::Context> context) {
    auto console = CreateObject(context);
-   context->Global()->Set(context, ToV8String(context->GetIsolate(), "console"),
+   context->Global()->Set(context, ToV8String(v8::Isolate::GetCurrent(), "console"),
                      console)
       .Check();
 }

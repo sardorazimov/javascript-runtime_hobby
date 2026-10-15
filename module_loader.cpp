@@ -20,8 +20,9 @@ ModuleLoader::~ModuleLoader() {
 }
 
 void ModuleLoader::Install(v8::Local<v8::Context> context) {
-   auto* isolate = context->GetIsolate();
-   auto data = v8::External::New(isolate, this);
+   auto* isolate = v8::Isolate::GetCurrent();
+   auto data = v8::External::New(
+      isolate, this, v8::kExternalPointerTypeTagDefault);
    auto require = v8::Function::New(context, RequireCallback, data).ToLocalChecked();
    context->Global()->Set(context, ToV8String(isolate, "require"), require).Check();
 }
@@ -40,7 +41,7 @@ void ModuleLoader::RequireCallback(
    }
 
    auto* loader = static_cast<ModuleLoader*>(
-      info.Data().As<v8::External>()->Value());
+      info.Data().As<v8::External>()->Value(v8::kExternalPointerTypeTagDefault));
    try {
       const auto request = ToStdString(isolate, info[0]);
       v8::Local<v8::Value> result;
@@ -57,12 +58,12 @@ v8::MaybeLocal<v8::Value> ModuleLoader::Require(
    v8::Local<v8::Context> context, const std::string& request) {
    if (request == "fs") {
       auto* runtime = static_cast<Runtime*>(
-         context->GetIsolate()->GetData(0));
+         v8::Isolate::GetCurrent()->GetData(0));
       return FsModule::CreateObject(context, &runtime->fs_async_context());
    }
    if (request == "console") {
       return context->Global()->Get(
-         context, ToV8String(context->GetIsolate(), "console"));
+         context, ToV8String(v8::Isolate::GetCurrent(), "console"));
    }
    if (request == "buffer") {
       return BufferModule::CreateObject(context);
@@ -95,7 +96,7 @@ std::filesystem::path ModuleLoader::Resolve(const std::string& request) const {
 
 v8::MaybeLocal<v8::Value> ModuleLoader::LoadFile(
    v8::Local<v8::Context> context, const std::filesystem::path& file) {
-   auto* isolate = context->GetIsolate();
+   auto* isolate = v8::Isolate::GetCurrent();
    std::error_code error;
    const auto canonical_file = std::filesystem::weakly_canonical(file, error);
    if (error) {
@@ -140,7 +141,8 @@ v8::MaybeLocal<v8::Value> ModuleLoader::LoadFile(
       return {};
    }
 
-   auto require_data = v8::External::New(isolate, this);
+   auto require_data = v8::External::New(
+      isolate, this, v8::kExternalPointerTypeTagDefault);
    auto require = v8::Function::New(context, RequireCallback, require_data)
                   .ToLocalChecked();
    v8::Local<v8::Value> arguments[] = {

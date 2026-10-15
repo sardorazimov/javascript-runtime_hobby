@@ -10,7 +10,8 @@ namespace mininode {
 namespace {
 
 EventLoop* GetLoop(const v8::FunctionCallbackInfo<v8::Value>& info) {
-   return static_cast<EventLoop*>(info.Data().As<v8::External>()->Value());
+   return static_cast<EventLoop*>(info.Data().As<v8::External>()->Value(
+      v8::kExternalPointerTypeTagDefault));
 }
 
 }
@@ -22,7 +23,8 @@ EventLoop::~EventLoop() {
 }
 
 void EventLoop::Install(v8::Local<v8::Context> context) {
-   auto data = v8::External::New(isolate_, this);
+   auto data = v8::External::New(
+      isolate_, this, v8::kExternalPointerTypeTagDefault);
    auto set_timeout = v8::Function::New(context, SetTimeout, data).ToLocalChecked();
    auto clear_timeout =
       v8::Function::New(context, ClearTimeout, data).ToLocalChecked();
@@ -147,7 +149,9 @@ void EventLoop::Run(v8::Local<v8::Context> context) {
 
       v8::HandleScope handle_scope(isolate_);
       v8::TryCatch try_catch(isolate_);
-      callback->Call(context, context->Global(), 0, nullptr);
+      v8::Local<v8::Value> result;
+      const bool callback_succeeded =
+         callback->Call(context, context->Global(), 0, nullptr).ToLocal(&result);
       isolate_->PerformMicrotaskCheckpoint();
       if (try_catch.HasCaught()) {
          v8::String::Utf8Value message(isolate_, try_catch.Exception());
@@ -155,6 +159,7 @@ void EventLoop::Run(v8::Local<v8::Context> context) {
                  << (*message == nullptr ? "JavaScript error" : *message)
                  << '\n';
       }
+            static_cast<void>(callback_succeeded);
    }
 }
 

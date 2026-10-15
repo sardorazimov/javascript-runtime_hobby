@@ -19,6 +19,8 @@ struct AsyncContext {
 void Install(v8::Isolate* isolate, v8::Local<v8::Context> context,
           AsyncContext* async_context);
 v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context);
+v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context,
+                                   AsyncContext* async_context);
 
 }
 /* fs_module.cpp: fs.readFile veya fs.writeFileSync gibi temel 

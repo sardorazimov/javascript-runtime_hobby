@@ -33,7 +33,7 @@ void BufferToString(const v8::FunctionCallbackInfo<v8::Value>& info) {
 
 v8::Local<v8::Uint8Array> MakeBuffer(v8::Local<v8::Context> context,
                             const char* data, std::size_t size) {
-   auto* isolate = context->GetIsolate();
+   auto* isolate = v8::Isolate::GetCurrent();
    auto array_buffer = v8::ArrayBuffer::New(isolate, size);
    auto result = v8::Uint8Array::New(array_buffer, 0, size);
    if (size > 0) {
@@ -119,7 +119,7 @@ void IsBuffer(const v8::FunctionCallbackInfo<v8::Value>& info) {
 }
 
 v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context) {
-   auto* isolate = context->GetIsolate();
+   auto* isolate = v8::Isolate::GetCurrent();
    auto buffer = v8::Object::New(isolate);
    buffer->Set(context, ToV8String(isolate, "alloc"),
             v8::Function::New(context, Alloc).ToLocalChecked())
@@ -135,7 +135,7 @@ v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context) {
 
 void Install(v8::Isolate*, v8::Local<v8::Context> context) {
    auto buffer = CreateObject(context);
-   context->Global()->Set(context, ToV8String(context->GetIsolate(), "Buffer"),
+   context->Global()->Set(context, ToV8String(v8::Isolate::GetCurrent(), "Buffer"),
                      buffer)
       .Check();
 }
