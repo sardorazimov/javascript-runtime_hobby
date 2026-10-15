@@ -12,9 +12,12 @@
 #include "console_module.h"
 #include "event_loop.h"
 #include "fs_module.h"
+#include "http_module.h"
 #include "module_loader.h"
 #include "net_module.h"
 #include "promise_tracker.h"
+#include "socket_module.h"
+#include "tls_module.h"
 
 namespace mininode {
 
@@ -56,8 +59,12 @@ Runtime::Runtime(std::filesystem::path working_directory)
       FsModule::Install(isolate_, local_context, &fs_async_context_);
       BufferModule::Install(isolate_, local_context);
       NetModule::Install(isolate_, local_context);
+      HttpModule::Install(isolate_, local_context);
+      TlsModule::Install(isolate_, local_context);
+      SocketModule::Install(isolate_, local_context);
       event_loop_->Install(local_context);
       module_loader_ = std::make_unique<ModuleLoader>(*this);
+      isolate_->SetData(1, module_loader_.get());
       module_loader_->Install(local_context);
       PromiseTracker::Install(isolate_);
    }
@@ -70,6 +77,7 @@ Runtime::~Runtime() {
          v8::Isolate::Scope isolate_scope(isolate_);
          v8::HandleScope handle_scope(isolate_);
          event_loop_.reset();
+         isolate_->SetData(1, nullptr);
          module_loader_.reset();
          fs_async_context_.context.Reset();
          context_.Reset();

@@ -124,6 +124,10 @@ void TcpRequestSync(const v8::FunctionCallbackInfo<v8::Value>& info) {
 
 }
 
+void TcpRequest(const v8::FunctionCallbackInfo<v8::Value>& info) {
+   TcpRequestSync(info);
+}
+
 v8::Local<v8::Object> CreateObject(v8::Local<v8::Context> context) {
    auto* isolate = v8::Isolate::GetCurrent();
    auto net = v8::Object::New(isolate);

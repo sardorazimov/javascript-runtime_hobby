@@ -3,6 +3,8 @@
 cmake_minimum_required(VERSION 3.15)
 project(MiniNodeRuntime LANGUAGES CXX)
 
+find_package(CURL REQUIRED)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -69,13 +71,16 @@ set(MININODE_SOURCES
 	main.cpp
 	module_loader.cpp
 	net_module.cpp
+	http_module.cpp
+	tls_module.cpp
+	socket_module.cpp
 	runtime.cpp
 )
 
 if(MININODE_V8_INCLUDE_DIR AND MININODE_V8_LIBRARIES)
 	add_executable(mininode ${MININODE_SOURCES})
 	target_include_directories(mininode PRIVATE "${MININODE_V8_INCLUDE_DIR}")
-	target_link_libraries(mininode PRIVATE ${MININODE_V8_LIBRARIES})
+	target_link_libraries(mininode PRIVATE ${MININODE_V8_LIBRARIES} CURL::libcurl)
 	if(MININODE_V8_COMPRESS_POINTERS)
 		target_compile_definitions(mininode PRIVATE V8_COMPRESS_POINTERS)
 	endif()

@@ -40,7 +40,7 @@ classDef bridgeLayer fill:#744210,stroke:#f6ad55,stroke-width:2px,color:#fff;
 classDef cppLayer fill:#22543d,stroke:#68d391,stroke-width:2px,color:#fff;
 
 subgraph JS["1. JavaScript Layer"]
-A["app.js<br/>Entry script, require(), console, Buffer, timers"]:::jsLayer
+A["app.js (CJS) or app.mjs (ESM)<br/>Entry script, console, Buffer, timers"]:::jsLayer
 end
 
 subgraph V8["2. V8 Engine"]
@@ -49,7 +49,7 @@ C["V8 Garbage Collector<br/>Manages JavaScript objects and ArrayBuffers"]:::v8La
 end
 
 subgraph Bridge["3. Native Bindings"]
-D["Function callbacks<br/>console, fs, and net APIs"]:::bridgeLayer
+D["Native callbacks<br/>console, fs, net, socket, http, tls"]:::bridgeLayer
 E["Buffer module<br/>V8 Uint8Array-backed byte data"]:::bridgeLayer
 end
 
@@ -58,6 +58,7 @@ F["main.cpp and Runtime<br/>Startup, V8 lifecycle, and shutdown"]:::cppLayer
 G["ModuleLoader<br/>Local CommonJS-style loading and cache"]:::cppLayer
 H["EventLoop<br/>Timers and JS-thread callbacks"]:::cppLayer
 I["AsyncTaskPool<br/>Background filesystem work"]:::cppLayer
+J["libcurl<br/>HTTP and verified HTTPS/TLS client"]:::cppLayer
 end
 
 F -->|Creates and configures| B
@@ -66,6 +67,7 @@ F -->|Installs| E
 F -->|Creates| G
 F -->|Creates| H
 G -->|Reads and wraps| A
+A -->|Loads local static imports| G
 A -->|Runs inside| B
 B <-->|Native calls and results| D
 E -->|Creates managed typed arrays| B
@@ -75,13 +77,16 @@ D -->|Submits file work| I
 I -->|Posts completion| H
 H -->|Invokes callback on JS thread| B
 A -->|setTimeout and clearTimeout| H
+A -->|HTTP, HTTPS, or raw TCP request| D
+D -->|HTTP and TLS transport| J
+J -->|Status and response body| B
 ```
 
 At a high level, startup works like this:
 
 1. Initialize V8 and create an isolate and JavaScript context.
 2. Install native globals such as `console`, `Buffer`, and timers.
-3. Read the entry script and wrap local modules in a CommonJS-style function.
+3. Load `.js` scripts as CommonJS or compile `.mjs` scripts as V8 ES modules.
 4. Execute JavaScript through V8; native callbacks call back into C++.
 5. Process queued file callbacks, timers, and JavaScript microtasks.
 6. Release V8 handles, the isolate, and the platform during shutdown.
@@ -91,16 +96,23 @@ At a high level, startup works like this:
 - V8 embedding, context setup, script execution, and error reporting.
 - `console.log`, `console.info`, `console.warn`, and `console.error`.
 - `require()` for local `.js` files, with a simple module cache.
-- Built-in modules: `fs`, `buffer`, and `net`.
+- `.mjs` entry scripts with local static relative imports and exported bindings.
+- Built-in modules: `fs`, `buffer`, `net`, `socket`, `http`, and `tls`.
+- Built-in network experiments: `socket`, `http`, and `tls`.
 - `fs.readFile`, `fs.readFileSync`, `fs.writeFileSync`, and `fs.existsSync`.
 - `Buffer.alloc`, `Buffer.from`, `Buffer.isBuffer`, and UTF-8 `toString()`.
 - `setTimeout` and `clearTimeout` in a small event loop.
 - A worker pool for file reads; callbacks are delivered on the runtime thread.
 - Promise microtask checkpoints and unhandled rejection reporting.
 - `net.tcpRequestSync(host, port, request)` for basic TCP experiments.
+- `socket.requestSync(host, port, data)` for raw TCP socket experiments.
+- `http.getSync(url)` and `http.requestSync(url, method, body)`.
+- `tls.getSync(url)` and `tls.requestSync(url, method, body)` with certificate verification.
 
-`app.js` is the runnable example. It exercises built-ins, writes and reads
-`mini-node-output.txt`, and schedules callbacks.
+`app.js` is the CommonJS example. It exercises built-ins, writes and reads
+`mini-node-output.txt`, and schedules callbacks. `app.mjs` demonstrates a local
+ES module import. `network-demo.js` exercises HTTP, HTTPS/TLS, and raw TCP; it
+requires an internet connection.
 
 ## Requirements
 
@@ -108,11 +120,12 @@ At a high level, startup works like this:
 - CMake
 - Homebrew
 - V8 development headers and libraries
+- libcurl development headers and library
 
 Install the dependencies with Homebrew:
 
 ```sh
-brew install cmake v8
+brew install cmake v8 curl
 ```
 
 The C/C++ extension for VS Code is optional. It provides editor support, not
@@ -136,6 +149,18 @@ directory. To run another script:
 
 ```sh
 ./build/mininode path/to/script.js
+```
+
+Run the ES module example:
+
+```sh
+./build/mininode app.mjs
+```
+
+Run the network example (requires internet access):
+
+```sh
+./build/mininode network-demo.js
 ```
 
 For a release build, use a separate build directory:
@@ -197,10 +222,12 @@ implementation, and observable result can all be followed together.
 
 This is an experimental learning runtime, not a Node.js replacement. The
 current implementation does not provide full Node compatibility, npm package
-resolution, ES modules, TLS, or an HTTP server. `net.tcpRequestSync` is
-synchronous and intended only for simple experiments. The `Buffer` API is a
-small subset of Node's API. Review the source before running scripts you do not
-trust: native filesystem and network APIs are not sandboxed.
+resolution, dynamic imports, top-level await, or an HTTP server. ES modules
+support local static imports; built-in modules are accessed with `require()`.
+HTTP, TLS, and raw TCP requests are synchronous and intended for small
+experiments. TLS certificate and hostname verification are enabled. The
+`Buffer` API is a small subset of Node's API. Review the source before running
+scripts you do not trust: native filesystem and network APIs are not sandboxed.
 
 ## Benchmarks and Language Experiments
 
